@@ -1,0 +1,9 @@
+tensorflow
+opencv-python
+numpy
+pillow
+matplotlib
+scikit-learn
+streamlit>=1.40
+streamlit-option-menu
+notebook
