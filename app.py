@@ -1,7 +1,39 @@
+"""Streamlit app: brain tumour information and MRI classification demo.
+
+Run with:  streamlit run app.py
+Educational use only. Not a diagnostic tool.
+"""
+from pathlib import Path
+
+import numpy as np
 import streamlit as st
 import tensorflow as tf
-from PIL import Image
+from PIL import Image, ImageOps
 from streamlit_option_menu import option_menu
+
+MODEL_PATH = Path(__file__).parent / "best_cnnmodel_1.h5"
+IMG_SIZE = (150, 150)
+CLASS_NAMES = ["glioma_tumor", "meningioma_tumor", "no_tumor", "pituitary_tumor"]
+
+st.set_page_config(page_title="Brain Tumour Classification")
+
+
+@st.cache_resource
+def load_model():
+    """Load the trained CNN once and reuse it across reruns."""
+    return tf.keras.models.load_model(MODEL_PATH)
+
+
+def predict(image, model):
+    """Return class probabilities for a PIL image.
+
+    The model was trained on 150x150 images read with OpenCV (BGR channel
+    order, pixel values 0-255), so the upload is converted to match.
+    """
+    image = ImageOps.fit(image.convert("RGB"), IMG_SIZE, Image.LANCZOS)
+    bgr = np.asarray(image, dtype="float32")[..., ::-1]
+    return model.predict(bgr[np.newaxis, ...], verbose=0)[0]
+
 
 selected = option_menu(
   menu_title=None,
@@ -16,9 +48,9 @@ if selected == "Home":
 
 #####
 
-if selected == "Treatment and Diagnosis":
+if selected == "Treatment & Diagnosis":
   st.header("Treatment")
-  tab1, tab2, tab3, tab4, tab5 = st.tabs(5)
+  tab1, tab2, tab3, tab4, tab5 = st.tabs(["Surgery", "Radiation", "Radiosurgery", "Chemotherapy", "Targeted therapy"])
 
   with tab1:
    st.header("Surgery")
@@ -52,43 +84,23 @@ if selected == "Treatment and Diagnosis":
   ######
 
 if selected == "Detection":
-    @st.cache_data(allow_output_mutation=True)
-    def load_BraintumourcnnModel():
-      BraintumourcnnModel=tf.keras.models.load_BraintumourcnnModel('/content/drive/MyDrive/Dataset/Brain_Tumour/BrainTumour/BraintumourcnnModel.hdf5')
-      return BraintumourcnnModel
-    with st.spinner('Model is being loaded...'):
-       BraintumourcnnModel=load_BraintumourcnnModel()
+    st.header("Brain tumour classification")
+    st.caption("Educational demo only. This is not a diagnostic tool.")
 
-st.write("""
-
-        Brain tumor Classification
-
-        """)
-
-file = st.file_uploader("Please upload a brain MRI scan file", type=["jpg","png"])
-import cv2
-from PIL import Image, ImageOps
-import numpy as np
-st.set_option('deprecation.showfileUploaderEncoding', False)
-def import_and_predict(image_data, BraintumourcnnModel):
-  size = (150,150)
-  image = ImageOps.fit(image_data, size, Image.ANTIALIAS)
-  image = np.asarray(image)
-  img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-  img_reshape = img[np.newaxis,...]
-  prediction = model.predict(img_reshape)
-  return prediction
-if file is None:
-    st.text("Please upload an image file")
-else:
-    image = Image.open(file)
-    st.image(image, use_column_width=True)
-    predictions = import_and_predict(image, model)
-    score = tf.nn.softmax(predictions[0])
-    st.write(predictions)
-    st.write(score)
-    class_names = ['glioma_tumor', 'meningioma_tumor', 'no_tumor', 'pituitary_tumor']
-    st.write(
-    "This image most likely belongs to {} with a {:.2f} percent confidence."
-    .format(class_names[np.argmax(score)], 100 * np.max(score))
-)
+    file = st.file_uploader("Please upload a brain MRI scan file", type=["jpg", "jpeg", "png"])
+    if file is None:
+        st.text("Please upload an image file")
+    elif not MODEL_PATH.exists():
+        st.error(f"Model file not found: {MODEL_PATH.name}")
+    else:
+        image = Image.open(file)
+        st.image(image, use_container_width=True)
+        with st.spinner("Model is being loaded..."):
+            model = load_model()
+        probabilities = predict(image, model)
+        best = int(np.argmax(probabilities))
+        st.write(
+            "This image most likely belongs to {} with a {:.2f} percent confidence."
+            .format(CLASS_NAMES[best], 100 * float(probabilities[best]))
+        )
+        st.bar_chart(dict(zip(CLASS_NAMES, map(float, probabilities))))
