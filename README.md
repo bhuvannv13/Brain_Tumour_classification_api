@@ -11,7 +11,7 @@ Deep learning experiments for detecting and classifying brain tumours from MRI s
 | `Copy_of_F&N__CNNBrainTumorCHI.ipynb` | Custom CNN that classifies MRI scans into four classes: glioma, meningioma, pituitary tumour and no tumour. Images are resized to 150x150. |
 | `Brain Tumour Detection.ipynb` | Binary tumour / no-tumour detection using transfer learning with ResNet50 (224x224 input). |
 | `BrainTumor_DataAugumentation.ipynb`, `BrainTumor_DataAugumentation_2.ipynb` | Image preprocessing: Gaussian blur, median filter and negative filter applied class by class to the training and testing folders. |
-| `app.py` | Streamlit app (work in progress) with background information on brain tumours and an upload page for predictions. |
+| `app.py` | Streamlit app with background information on brain tumours and an upload page for predictions. |
 | `best_cnnmodel_1.h5` | Saved Keras model. |
 | `archive.zip` | Small binary MRI dataset (`yes` / `no` folders, 253 images) used by the detection notebook. |
 
@@ -36,7 +36,7 @@ The binary dataset is small, so its numbers should be read as indicative only.
 ```bash
 git clone https://github.com/bhuvannv13/Brain_Tumour_classification_api.git
 cd Brain_Tumour_classification_api
-pip install tensorflow opencv-python numpy pillow matplotlib scikit-learn streamlit streamlit-option-menu notebook
+pip install -r requirements.txt
 ```
 
 The notebooks were written in Google Colab and read data from Google Drive. Before running them locally, change the dataset paths at the top of each notebook to point at your own copy of the data.
@@ -45,7 +45,7 @@ The notebooks were written in Google Colab and read data from Google Drive. Befo
 jupyter notebook
 ```
 
-To launch the app (the model path in `app.py` still needs to be pointed at your saved model first):
+To launch the app, which loads `best_cnnmodel_1.h5` from this folder:
 
 ```bash
 streamlit run app.py
