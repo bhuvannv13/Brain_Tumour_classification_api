@@ -1,5 +1,7 @@
 # Brain Tumour Classification
 
+[![Tests](https://github.com/bhuvannv13/Brain_Tumour_classification_api/actions/workflows/tests.yml/badge.svg)](https://github.com/bhuvannv13/Brain_Tumour_classification_api/actions/workflows/tests.yml)
+
 Deep learning experiments for detecting and classifying brain tumours from MRI scans, with a Streamlit app for trying a trained model on your own images.
 
 > Educational project. Not a medical device and not suitable for clinical use.
@@ -12,6 +14,8 @@ Deep learning experiments for detecting and classifying brain tumours from MRI s
 | `Brain Tumour Detection.ipynb` | Binary tumour / no-tumour detection using transfer learning with ResNet50 (224x224 input). |
 | `BrainTumor_DataAugumentation.ipynb`, `BrainTumor_DataAugumentation_2.ipynb` | Image preprocessing: Gaussian blur, median filter and negative filter applied class by class to the training and testing folders. |
 | `app.py` | Streamlit app with background information on brain tumours and an upload page for predictions. |
+| `inference.py` | Model loading and image preprocessing, separate from the UI so it can be tested. |
+| `tests/` | Pytest suite for preprocessing and the saved model; runs on every push via GitHub Actions. |
 | `best_cnnmodel_1.h5` | Saved Keras model. |
 | `archive.zip` | Small binary MRI dataset (`yes` / `no` folders, 253 images) used by the detection notebook. |
 
@@ -51,6 +55,15 @@ To launch the app, which loads `best_cnnmodel_1.h5` from this folder:
 streamlit run app.py
 ```
 
+## Tests
+
+```bash
+pip install pytest
+python -m pytest -v
+```
+
+The tests check that uploads are resized to 150x150 and converted to the BGR channel order the model was trained with, that greyscale and transparent images are handled, and that the saved model returns one probability per class.
+
 ## Preprocessing filters
 
 - **Gaussian blur** (5x5 kernel) reduces noise and fine detail.
@@ -66,3 +79,7 @@ streamlit run app.py
 ## Author
 
 Bhuvann Vinodh Ram ([@bhuvannv13](https://github.com/bhuvannv13))
+
+## License
+
+MIT. See [LICENSE](LICENSE).
