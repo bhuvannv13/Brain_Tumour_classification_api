@@ -3,17 +3,13 @@
 Run with:  streamlit run app.py
 Educational use only. Not a diagnostic tool.
 """
-from pathlib import Path
-
 import numpy as np
 import streamlit as st
-import tensorflow as tf
-from PIL import Image, ImageOps
+from PIL import Image
 from streamlit_option_menu import option_menu
 
-MODEL_PATH = Path(__file__).parent / "best_cnnmodel_1.h5"
-IMG_SIZE = (150, 150)
-CLASS_NAMES = ["glioma_tumor", "meningioma_tumor", "no_tumor", "pituitary_tumor"]
+import inference
+from inference import CLASS_NAMES, MODEL_PATH
 
 st.set_page_config(page_title="Brain Tumour Classification")
 
@@ -21,18 +17,7 @@ st.set_page_config(page_title="Brain Tumour Classification")
 @st.cache_resource
 def load_model():
     """Load the trained CNN once and reuse it across reruns."""
-    return tf.keras.models.load_model(MODEL_PATH)
-
-
-def predict(image, model):
-    """Return class probabilities for a PIL image.
-
-    The model was trained on 150x150 images read with OpenCV (BGR channel
-    order, pixel values 0-255), so the upload is converted to match.
-    """
-    image = ImageOps.fit(image.convert("RGB"), IMG_SIZE, Image.LANCZOS)
-    bgr = np.asarray(image, dtype="float32")[..., ::-1]
-    return model.predict(bgr[np.newaxis, ...], verbose=0)[0]
+    return inference.load_model()
 
 
 selected = option_menu(
@@ -97,7 +82,7 @@ if selected == "Detection":
         st.image(image, use_container_width=True)
         with st.spinner("Model is being loaded..."):
             model = load_model()
-        probabilities = predict(image, model)
+        probabilities = inference.predict(image, model)
         best = int(np.argmax(probabilities))
         st.write(
             "This image most likely belongs to {} with a {:.2f} percent confidence."
